@@ -1,0 +1,15 @@
+select
+ count(*),
+ href
+from
+ clicks
+where
+ TD_TIME_RANGE(time, '2020-01-01', '2020-02-01', 'JST')
+AND
+ class in ('banner_')
+AND
+ td_os IN ('Windows','Linux','Windows 7','Windows Vista','Chrome OS','Windows 8.1','Mac OS X','Windows XP','Windows 8')
+AND
+ td_url IN ('https://store.kadokawa.co.jp/shop/default.aspx')
+group by
+ 2;
