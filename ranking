@@ -1,0 +1,48 @@
+WITH readproduct AS(
+  SELECT 
+    test001.td_client_id
+  FROM
+    kadokawa_official.test001
+  WHERE
+    test001.td_path = '/product/321907000277/'
+    AND test001.td_ip NOT IN(
+      '118.238.17.129',
+      '118.238.17.132',
+      '118.238.17.133',
+      '118.238.17.134',
+      '118.238.17.135',
+      '113.43.83.10',
+      '113.43.83.13',
+      '113.43.83.15',
+      '182.171.68.129',
+      '182.171.68.130',
+      '182.171.72.193',
+      '118.238.8.177',
+      '118.238.19.1'
+    )
+    AND test001.td_browser != 'Googlebot'
+  GROUP BY
+    test001.td_client_id
+) SELECT 
+  MAX(REGEXP_REPLACE(test001.td_title,
+      ' \| KADOKAWA',
+      ''))|| MAX(CONCAT(' | ',
+      test001.kd_bookinfolabel))|| 'https://www.kadokawa.co.jp'|| test001.td_path AS "title"
+FROM
+  kadokawa_official.test001
+JOIN
+  readproduct
+  ON test001.td_client_id = readproduct.td_client_id
+WHERE
+  regexp_like(
+    test001.td_path,
+    '^/product/[0-9]+/'
+  )
+  AND test001.td_language IN(
+    'ja',
+    'ja-jp'
+  )
+GROUP BY
+  test001.td_path
+ORDER BY
+  COUNT(DISTINCT test001.td_client_id) DESC LIMIT 10
