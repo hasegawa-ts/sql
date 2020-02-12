@@ -1,0 +1,101 @@
+WITH monthly_dengekiya as (
+SELECT
+  update_date,
+  COUNT(update_date) as timecnt
+FROM
+(SELECT
+  update_date
+FROM
+  (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_dengekiya.rawdata_member_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_dengekiya.rawdata_product_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_dengekiya.rawdata_transaction_data ORDER BY update_date DESC)
+)
+GROUP BY update_date
+),
+monthly_kadokawastore as (
+SELECT
+  update_date,
+  COUNT(update_date) as timecnt
+FROM
+(SELECT
+  update_date
+FROM
+  (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_kadokawastore.rawdata_member_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_kadokawastore.rawdata_product_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_kadokawastore.rawdata_transaction_data ORDER BY update_date DESC)
+)
+GROUP BY update_date
+),
+monthly_bookwalker as (
+SELECT
+  update_date,
+  COUNT(update_date) as timecnt
+FROM
+(SELECT
+  update_date
+FROM
+  (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_bookwalker.rawdata_member_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_bookwalker.rawdata_product_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_bookwalker.rawdata_transaction_data ORDER BY update_date DESC)
+)
+GROUP BY update_date
+),
+monthly_charaani as (
+SELECT
+  update_date,
+  COUNT(update_date) as timecnt
+FROM
+(SELECT
+  update_date
+FROM
+  (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_charaani.rawdata_member_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_charaani.rawdata_product_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_charaani.rawdata_transaction_data ORDER BY update_date DESC)
+)
+GROUP BY update_date
+),
+monthly_comicwalker as (
+SELECT
+  update_date,
+  COUNT(update_date) as timecnt
+FROM
+(SELECT
+  update_date
+FROM
+  (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_comicwalker.rawdata_member_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_comicwalker.rawdata_mymagazine_data ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_comicwalker.rawdata_product_master ORDER BY update_date DESC)
+)
+GROUP BY update_date
+),
+monthly_customerrings as (
+SELECT
+  update_date,
+  COUNT(update_date) as timecnt
+FROM
+(SELECT
+  update_date
+FROM
+  (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_customerrings.rawdata_member_master ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_customerrings.rawdata_enquete_data ORDER BY update_date DESC) 
+  UNION ALL (SELECT TD_TIME_FORMAT(time, 'yyyy-MM', 'JST') as update_date FROM stmp_raw_customerrings.rawdata_enquete_master ORDER BY update_date DESC) 
+)
+GROUP BY update_date
+)
+SELECT
+  a.update_date,
+  a.timecnt as dengekiya,
+  b.timecnt as kadokawastore,
+  if(c.timecnt is NULL, 0, c.timecnt) as bookwalker,
+  if(d.timecnt is NULL, 0, d.timecnt) as charaani,
+  if(e.timecnt is NULL, 0, e.timecnt) as comicwalker,
+  if(f.timecnt is NULL, 0, f.timecnt) as customerrings,
+  a.timecnt + if(b.timecnt is NULL, 0, b.timecnt) + if(c.timecnt is NULL, 0, c.timecnt) + if(d.timecnt is NULL, 0, d.timecnt) + if(e.timecnt is NULL, 0, e.timecnt) + if(f.timecnt is NULL, 0, f.timecnt) as monthly_total
+FROM
+  monthly_dengekiya a
+  LEFT JOIN monthly_kadokawastore b on a.update_date = b.update_date
+  LEFT JOIN monthly_bookwalker c on a.update_date = c.update_date
+  LEFT JOIN monthly_charaani d on a.update_date = d.update_date
+  LEFT JOIN monthly_comicwalker e on a.update_date = e.update_date
+  LEFT JOIN monthly_customerrings f on a.update_date = f.update_date
+ORDER BY a.update_date DESC
